@@ -5,10 +5,7 @@ clipforge — Fast Pythonic FFmpeg wrapper.
 __version__ = "0.4.2"
 __all__ = ["encode", "decode", "probe", "pipeline"]
 
-# Import native binding — this is where the libavcodec error surfaces on
-# ARM64 macOS if the codec path is not correctly resolved.
 from clipforge._binding import encode as _encode, decode as _decode, probe as _probe
-
 from clipforge.utils import VideoInfo, FrameIterator, pipeline
 
 
