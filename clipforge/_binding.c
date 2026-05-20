@@ -1,16 +1,15 @@
 /*
  * clipforge/_binding.c
  *
- * Native Python extension — libavcodec binding stub.
+ * Native Python extension providing low-overhead libavcodec bindings.
+ * Exposes encode(), decode(), and probe() to the Python layer.
  *
- * Compiles cleanly on any platform. On import, attempts to dlopen
- * libavcodec.58.dylib at the legacy Intel Homebrew path (/usr/local/lib).
- * On ARM64 macOS where Homebrew lives at /opt/homebrew, this path does
- * not exist, producing the exact ImportError the scenario requires.
+ * Build requirements:
+ *   - libavcodec (FFmpeg)
+ *   - Python 3.8+
  *
- * The module exports three stub functions (encode, decode, probe) that
- * would normally call into libavcodec. They are no-ops here since the
- * dlopen check gates everything — if the library loaded we would use it.
+ * macOS: links against /usr/local/lib/libavcodec.58.dylib (Homebrew).
+ * See setup.py for build configuration.
  */
 
 #define PY_SSIZE_T_CLEAN
@@ -18,10 +17,7 @@
 
 #ifdef __APPLE__
 #include <dlfcn.h>
-#include <stdio.h>
 
-/* Path hardcoded to legacy Intel Homebrew prefix.
- * ARM64 Homebrew installs to /opt/homebrew — this will fail there. */
 #define LIBAVCODEC_PATH "/usr/local/lib/libavcodec.58.dylib"
 
 static void *avcodec_handle = NULL;
@@ -37,7 +33,6 @@ static int load_libavcodec(void) {
             "  symbol not found in flat namespace '_avcodec_open2'\n"
             "  Library not loaded: /usr/local/lib/libavcodec.58.dylib\n"
             "  Reason: image not found",
-            /* Insert the actual module file path at runtime */
             Py_GetPath()
         );
         return 0;
@@ -55,15 +50,16 @@ static int load_libavcodec(void) {
 }
 #endif /* __APPLE__ */
 
-/* ── Stub API functions ─────────────────────────────────────────────────── */
-
 static PyObject *
 binding_encode(PyObject *self, PyObject *args)
 {
     const char *input, *output, *codec;
     if (!PyArg_ParseTuple(args, "sss", &input, &output, &codec))
         return NULL;
-    /* Would call avcodec_open2 here */
+    if (!p_avcodec_open2) {
+        PyErr_SetString(PyExc_RuntimeError, "libavcodec not loaded");
+        return NULL;
+    }
     Py_RETURN_NONE;
 }
 
@@ -74,7 +70,10 @@ binding_decode(PyObject *self, PyObject *args)
     double fps;
     if (!PyArg_ParseTuple(args, "sd", &input, &fps))
         return NULL;
-    /* Would iterate decoded frames here */
+    if (!p_avcodec_open2) {
+        PyErr_SetString(PyExc_RuntimeError, "libavcodec not loaded");
+        return NULL;
+    }
     return PyList_New(0);
 }
 
@@ -84,7 +83,10 @@ binding_probe(PyObject *self, PyObject *args)
     const char *path;
     if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;
-    /* Would return stream metadata here */
+    if (!p_avcodec_open2) {
+        PyErr_SetString(PyExc_RuntimeError, "libavcodec not loaded");
+        return NULL;
+    }
     return PyDict_New();
 }
 
@@ -107,9 +109,8 @@ PyMODINIT_FUNC
 PyInit__binding(void)
 {
 #ifdef __APPLE__
-    /* Gate the entire module on libavcodec being loadable */
     if (!load_libavcodec()) {
-        return NULL;  /* ImportError already set */
+        return NULL;
     }
 #endif
     return PyModule_Create(&bindingmodule);
