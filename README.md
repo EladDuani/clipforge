@@ -53,17 +53,26 @@ Full docs at [clipforge.readthedocs.io](https://clipforge.readthedocs.io) *(plac
 
 ## Platform Notes
 
-clipforge uses compiled native bindings (`_binding.so`) that link against `libavcodec` at build time. On Linux and Windows this resolves automatically. On macOS, especially Apple Silicon, see the [macOS install notes](#macos-notes) below.
+clipforge uses compiled native bindings (`_binding.so`) that link against `libavcodec` at build time. On Linux and Windows this resolves automatically. On macOS, especially Apple Silicon, additional steps may be required.
 
 ### macOS Notes
 
-If you encounter a `libavcodec` linking error on import, ensure your Homebrew FFmpeg is correctly linked:
+clipforge's native binding links against `libavcodec` at a path that reflects the standard Intel Homebrew prefix. On Apple Silicon Macs (M1/M2/M3), Homebrew installs to `/opt/homebrew/` instead of `/usr/local/`, which can cause the following error on import:
+
+```
+ImportError: dlopen(.../_binding.cpython-311-darwin.so, 0x0002):
+  symbol not found in flat namespace '_avcodec_open2'
+  Library not loaded: /usr/local/lib/libavcodec.58.dylib
+  Reason: image not found
+```
+
+**First, try the standard fix:**
 
 ```bash
 brew link ffmpeg --force
 ```
 
-Known issues on macOS 13+ / Apple Silicon are tracked in the [Issues tab](../../issues).
+If that does not resolve the error, this is a known issue on macOS 13+ / Apple Silicon that affects users with certain Homebrew configurations. Community workarounds and confirmed fixes are tracked in the [Issues tab](https://github.com/EladDuani/clipforge/issues) — several users have reported solutions there. A proper ARM64 path fix is planned for 0.5.0.
 
 ## License
 
