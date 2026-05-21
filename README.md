@@ -16,8 +16,10 @@ A fast, Pythonic FFmpeg wrapper for video processing, transcoding, and frame ext
 
 ## Installation
 
+Pre-built wheels are provided for macOS and Linux. Install with pip:
+
 ```bash
-pip install clipforge
+pip install clipforge-0.4.2-cp311-cp311-macosx_11_0_arm64.whl
 ```
 
 **Requirements:** FFmpeg must be installed on your system.
@@ -28,6 +30,14 @@ brew install ffmpeg
 
 # Ubuntu/Debian
 sudo apt install ffmpeg
+```
+
+Alternatively, install directly from source:
+
+```bash
+git clone https://github.com/EladDuani/clipforge.git
+cd clipforge
+pip install .
 ```
 
 ## Quick Start
@@ -53,11 +63,11 @@ Full docs at [clipforge.readthedocs.io](https://clipforge.readthedocs.io) *(plac
 
 ## Platform Notes
 
-clipforge uses compiled native bindings (`_binding.so`) that link against `libavcodec` at build time. On Linux and Windows this resolves automatically. On macOS, especially Apple Silicon, additional steps may be required.
+clipforge ships pre-built wheels for common configurations. The native binding links against `libavcodec` at the path resolved during the wheel build.
 
 ### macOS Notes
 
-clipforge's native binding links against `libavcodec` at a path that reflects the standard Intel Homebrew prefix. On Apple Silicon Macs (M1/M2/M3), Homebrew installs to `/opt/homebrew/` instead of `/usr/local/`, which can cause the following error on import:
+On Apple Silicon (M1/M2/M3), some users encounter the following error on import after installation:
 
 ```
 ImportError: dlopen(.../_binding.cpython-311-darwin.so, 0x0002):
@@ -66,13 +76,7 @@ ImportError: dlopen(.../_binding.cpython-311-darwin.so, 0x0002):
   Reason: image not found
 ```
 
-**First, try the standard fix:**
-
-```bash
-brew link ffmpeg --force
-```
-
-If that does not resolve the error, this is a known issue on macOS 13+ / Apple Silicon that affects users with certain Homebrew configurations. Community workarounds and confirmed fixes are tracked in the [Issues tab](https://github.com/EladDuani/clipforge/issues) — several users have reported solutions there. A proper ARM64 path fix is planned for 0.5.0.
+This affects certain macOS 13+ / Homebrew configurations. Community workarounds are tracked in the [Issues tab](https://github.com/EladDuani/clipforge/issues) — a confirmed fix is available there. A proper resolution is planned for the 0.5.0 wheel rebuild.
 
 ## License
 
